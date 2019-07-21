@@ -118,6 +118,36 @@ MultiplyFilter::MultiplyFilter(float multiplier) : multiplier_(multiplier) {}
 
 optional<float> MultiplyFilter::new_value(float value) { return value * this->multiplier_; }
 
+// RmsFilter
+RmsFilter::RmsFilter(bool ac_coupled, uint32_t nsamples) : nsamples_(nsamples), ac_coupled_(ac_coupled) {
+	this->Reset();
+}
+
+void RmsFilter::Reset(void) {
+	this->count_ = 0;
+	this->sum_ = 0;
+	this->sumsquared_ = 0;
+}
+
+optional<float> RmsFilter::new_value(float value) {
+	this->sumsquared_ += value * value;
+	this->count_++;
+	if ((this->nsamples_ > 0) && (this->count_ >= this->nsamples_)) {
+		if (this->ac_coupled_) {
+			float ac = sqrt((this->sumsquared_ / this->nsamples_) - pow(this->sum_ / this->nsamples_,2));
+			this->Reset();
+			return ac;
+		}
+		else {
+			float dc = sqrt(this->sumsquared_ / this->nsamples_);
+			this->Reset();
+			return dc;
+		}
+	}
+	return {};
+}
+
+
 // FilterOutValueFilter
 FilterOutValueFilter::FilterOutValueFilter(float value_to_filter_out) : value_to_filter_out_(value_to_filter_out) {}
 

@@ -146,6 +146,24 @@ class MultiplyFilter : public Filter {
   float multiplier_;
 };
 
+/// A simple filter that calculates the RMS value after `nsamples` samples.
+class RmsFilter : public Filter {
+ public:
+  explicit RmsFilter(bool ac_only, uint32_t nsamples);
+
+  optional<float> new_value(float value) override;
+ private:
+  void Reset(void);
+
+ protected:
+  bool ac_coupled_;
+  uint32_t nsamples_;
+  // working values
+  uint32_t count_;
+  float sum_;
+  float sumsquared_;
+};
+
 /// A simple filter that only forwards the filter chain if it doesn't receive `value_to_filter_out`.
 class FilterOutValueFilter : public Filter {
  public:
